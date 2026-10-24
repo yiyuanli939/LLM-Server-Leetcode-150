@@ -99,16 +99,16 @@ exercises.yaml                     练习清单：id、文件、签名、领域�
 
 ## 讲义（PDF，含剧透）
 
-[`docs/nano-serve-guide.pdf`](https://github.com/yiyuanli939/LLM-Server-Leetcode-150/blob/solutions/docs/nano-serve-guide.pdf)（在 `solutions` 分支，289 页）：
+[`docs/nano-serve-guide.pdf`](docs/nano-serve-guide.pdf)（289 页）：
 系统设计（总览 + 七个里程碑各一章，每个设计取舍都与替代方案对比）、117 道题逐题讲解（引擎角色、算法、复杂度、参考实现、对比讲解、易错点）、按模式索引。
-它包含参考实现，建议做完题再看对应页。
+**它包含参考实现**，建议做完一道题再翻到对应的那一页。
 
 ## 关于剧透
 
 - 练习文件、`exercises.yaml`、进度面板都不出现题号。
 - `tests/lc/` 的用例取自原题示例，熟悉 LeetCode 的人一眼能认出——想练"认模式"，先别读测试。
 - 少数练习为了适配真实调用场景放宽了原题的约束（比如允许任意字符、时间从 0 开始、数据规模更大），算法本身不变。
-- 参考解只在 `solutions` 分支。
+- 参考解在 `solutions` 分支；`docs/` 里的讲义也包含参考实现。
 
 ## 做完之后
 
