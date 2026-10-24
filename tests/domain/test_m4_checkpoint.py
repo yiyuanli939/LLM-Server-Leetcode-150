@@ -84,3 +84,52 @@ def test_restore_waiting_queue_mid_run_and_resume(fmt):
     assert rep.outputs() == ref.outputs()
     assert {r.rid: (r.admitted_at, r.finished_at) for r in rep.requests} == \
            {r.rid: (r.admitted_at, r.finished_at) for r in ref.requests}
+
+
+def _all_nodes(root):
+    out, stack = [], [root]
+    while stack:
+        n = stack.pop()
+        if n is not None:
+            out.append(n)
+            stack += [n.left, n.right]
+    return out
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_corrupted_checkpoint_with_two_swapped_keys_is_repaired_on_restore(seed):
+    """A codec checkpoint whose writer swapped two keys: refused by default; with repair=True the
+    damage is localised (lowest common ancestor of the two out-of-order nodes) and only that subtree
+    is rewritten — the restored queue pops in exactly the original order."""
+    q, reqs = _random_queue(seed)
+    ckpt = checkpoint_queue(q, "codec")
+    rng = random.Random(seed)
+    root = load_index(ckpt["index"])
+    nodes = _all_nodes(root)
+    a, b = rng.sample(nodes, 2)
+    a.val, b.val = b.val, a.val
+    bad = dict(ckpt, index=dump_index(root, "codec"))
+
+    with pytest.raises(ValueError):
+        restore_queue(bad, reqs)
+    fixed = restore_queue(bad, reqs, repair=True)
+    assert fixed.check() == []
+    assert 2 <= fixed.repaired <= len(nodes)
+    assert [r.rid for r in fixed] == [r.rid for r in q]          # same EDF order as before the damage
+    healthy = restore_queue(ckpt, reqs, repair=True)
+    assert healthy.repaired == 0 and [r.rid for r in healthy] == [r.rid for r in q]
+
+
+def test_repair_only_touches_the_damaged_subtree():
+    from nanoserve.index.bst_index import BSTIndex
+    idx = BSTIndex()
+    for k in (50, 25, 75, 10, 30, 60, 90, 5, 15):
+        idx.add(k)
+    left = idx.root.left                       # subtree of 25: keys 5, 10, 15, 25, 30
+    a, b = left.left.left, left.right          # 5 and 30, both under 25
+    a.val, b.val = b.val, a.val
+    right_before = _shape(idx.root.right)
+    assert idx.check() != []
+    assert idx.repair() == 2                   # only the two swapped nodes change
+    assert idx.check() == [] and _shape(idx.root.right) == right_before
+    assert list(idx.keys()) == [5, 10, 15, 25, 30, 50, 60, 75, 90]

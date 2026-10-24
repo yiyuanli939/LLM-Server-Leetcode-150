@@ -51,6 +51,7 @@ class DeadlineQueue:
         """``urgent_window``: ticks ahead that count as urgent in the statistics.
         ``horizon``: deadline ticks the token counter covers initially (it grows on demand)."""
         self.index = BSTIndex()                   # request keys, in EDF order
+        self.repaired = 0                         # index nodes rewritten by a repairing restore
         self.deadlines = BSTIndex()               # one key per distinct pending deadline
         self._at_deadline: dict[int, int] = {}    # deadline -> waiting requests due then
         self._req_of: dict[int, Request] = {}     # key -> waiting request

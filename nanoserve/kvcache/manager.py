@@ -203,6 +203,17 @@ class BlockManager:
                     and self.arena.fits(n + self.block_size, self._next_sid))
         return self.fits(tokens)
 
+    def can_ever_fit(self, req: Request) -> bool:
+        """Could ``req`` run to completion if it had the whole cache to itself?
+
+        Worst case = prompt + max_tokens tokens with nothing shared. The server rejects requests that
+        fail this up front: admitting them would preempt everybody else and then itself, forever
+        (a livelock), because ``can_admit`` only checks that the prompt + one token fits *now*.
+        Quarantined (double-freed) blocks are never handed out again, so they don't count.
+        """
+        need = _blocks_for(req.prompt_tokens + req.max_tokens, self.block_size)
+        return need <= self.num_blocks - len(self.quarantine)
+
     def on_admit(self, req: Request, now: int) -> None:
         self.admit(req.rid, list(req.state.prompt_ids), now)
 

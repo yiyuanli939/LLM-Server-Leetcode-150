@@ -13,7 +13,7 @@ Three parts:
 
 Exercises reached from here: prefix.trie, prefix.hit_sum, tok.common_prefix (nanoserve.prefix.cache); index.insert,
 index.delete, index.kth, index.iter, index.validate, index.build, index.min_gap, index.range_sum,
-prefix.depth, prefix.level_dump, prefix.fork_point (nanoserve.index.queue / bst_index);
+prefix.depth, prefix.level_dump (nanoserve.index.queue / bst_index), prefix.fork_point (checkpoint repair);
 index.restore, prefix.codec, prefix.same_snapshot (nanoserve.index.checkpoint).
 """
 from __future__ import annotations

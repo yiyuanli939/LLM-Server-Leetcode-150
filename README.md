@@ -97,6 +97,12 @@ exercises.yaml                     练习清单：id、文件、签名、领域�
 .spoilers/MAPPING.md               练习 ↔ LeetCode 对应表（剧透）
 ```
 
+## 讲义（PDF，含剧透）
+
+[`docs/nano-serve-guide.pdf`](https://github.com/yiyuanli939/LLM-Server-Leetcode-150/blob/solutions/docs/nano-serve-guide.pdf)（在 `solutions` 分支，289 页）：
+系统设计（总览 + 七个里程碑各一章，每个设计取舍都与替代方案对比）、117 道题逐题讲解（引擎角色、算法、复杂度、参考实现、对比讲解、易错点）、按模式索引。
+它包含参考实现，建议做完题再看对应页。
+
 ## 关于剧透
 
 - 练习文件、`exercises.yaml`、进度面板都不出现题号。
