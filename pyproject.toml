@@ -1,0 +1,18 @@
+[project]
+name = "nano-serve"
+version = "0.1.0"
+description = "A tiny LLM inference engine you build yourself — and finish LeetCode Top Interview 150 along the way."
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "pyyaml>=6", "pytest>=7"]
+
+[project.optional-dependencies]
+dev = ["coverage>=7"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-p no:cacheprovider"
+markers = [
+    "exercise(id): LeetCode-equivalent unit test for one exercise",
+    "milestone(ms): end-to-end integration test for a milestone",
+]

@@ -1,0 +1,469 @@
+# 剧透：练习 id -> LeetCode 题号/标题/分类
+tok.segment:
+  lc: 139
+  title: Word Break
+  category: 1D DP
+tok.common_prefix:
+  lc: 14
+  title: Longest Common Prefix
+  category: Array/String
+stream.find_stop:
+  lc: 28
+  title: Find the Index of the First Occurrence in a String
+  category: Array/String
+stream.justify:
+  lc: 68
+  title: Text Justification
+  category: Array/String
+stream.holdback:
+  lc: 58
+  title: Length of Last Word
+  category: Array/String
+stream.unique_run:
+  lc: 3
+  title: Longest Substring Without Repeating Characters
+  category: Sliding Window
+stream.repeat_window:
+  lc: 219
+  title: Contains Duplicate II
+  category: Hashmap
+sample.cdf_index:
+  lc: 35
+  title: Search Insert Position
+  category: Binary Search
+sample.kth_largest:
+  lc: 215
+  title: Kth Largest Element in an Array
+  category: Heap
+tok.top_pieces:
+  lc: 347
+  title: Top K Frequent Elements
+  category: Heap
+stream.multi_stop:
+  lc: 1032
+  title: Stream of Characters
+  category: Trie
+stream.stop_overlap:
+  lc: 1392
+  title: Longest Happy Prefix
+  category: String (KMP)
+stream.frame_codec:
+  lc: 271
+  title: Encode and Decode Strings
+  category: Array/String
+metrics.median:
+  lc: 295
+  title: Find Median from Data Stream
+  category: Heap
+metrics.merged_median:
+  lc: 4
+  title: Median of Two Sorted Arrays
+  category: Binary Search
+sched.merge_busy:
+  lc: 56
+  title: Merge Intervals
+  category: Intervals
+sched.insert_busy:
+  lc: 57
+  title: Insert Interval
+  category: Intervals
+sched.min_launches:
+  lc: 452
+  title: Minimum Number of Arrows to Burst Balloons
+  category: Intervals
+metrics.dominant:
+  lc: 169
+  title: Majority Element
+  category: Array/String
+metrics.max_burst:
+  lc: 53
+  title: Maximum Subarray
+  category: Kadane's Algorithm
+metrics.max_burst_circular:
+  lc: 918
+  title: Maximum Sum Circular Subarray
+  category: Kadane's Algorithm
+sched.weighted_route:
+  lc: 528
+  title: Random Pick with Weight
+  category: Binary Search
+sched.capacity_ok:
+  lc: 1094
+  title: Car Pooling
+  category: Intervals
+sched.sjf:
+  lc: 1834
+  title: Single-Threaded CPU
+  category: Heap
+sched.assign_workers:
+  lc: 1882
+  title: Process Tasks Using Servers
+  category: Heap
+sched.busiest_worker:
+  lc: 2402
+  title: Meeting Rooms III
+  category: Heap
+sched.cooldown:
+  lc: 621
+  title: Task Scheduler
+  category: Greedy
+metrics.qps:
+  lc: 933
+  title: Number of Recent Calls
+  category: Queue
+metrics.window_max:
+  lc: 239
+  title: Sliding Window Maximum
+  category: Monotonic Queue
+metrics.window_median:
+  lc: 480
+  title: Sliding Window Median
+  category: Heap
+server.utf8_ok:
+  lc: 393
+  title: UTF-8 Validation
+  category: Bit Manipulation
+server.tokens:
+  lc: 1797
+  title: Design Authentication Manager
+  category: Design
+sched.slots:
+  lc: 1845
+  title: Seat Reservation Manager
+  category: Heap
+sched.maintenance:
+  lc: 729
+  title: My Calendar I
+  category: Design
+sched.min_workers:
+  lc: 2406
+  title: Divide Intervals Into Minimum Number of Groups
+  category: Intervals
+sched.slo_bound:
+  lc: 630
+  title: Course Schedule III
+  category: Heap
+sched.rr_busiest:
+  lc: 1606
+  title: Find Servers That Handled Most Number of Requests
+  category: Heap
+kv.lru:
+  lc: 146
+  title: LRU Cache
+  category: Linked List
+kv.fork:
+  lc: 138
+  title: Copy List with Random Pointer
+  category: Linked List
+kv.has_cycle:
+  lc: 141
+  title: Linked List Cycle
+  category: Linked List
+kv.partition_hot:
+  lc: 86
+  title: Partition List
+  category: Linked List
+kv.merge_free:
+  lc: 21
+  title: Merge Two Sorted Lists
+  category: Linked List
+kv.merge_free_k:
+  lc: 23
+  title: Merge k Sorted Lists
+  category: Divide & Conquer
+kv.sort_free:
+  lc: 148
+  title: Sort List
+  category: Divide & Conquer
+kv.drop_double_free:
+  lc: 82
+  title: Remove Duplicates from Sorted List II
+  category: Linked List
+kv.compact:
+  lc: 27
+  title: Remove Element
+  category: Array/String
+kv.dedupe:
+  lc: 26
+  title: Remove Duplicates from Sorted Array
+  category: Array/String
+kv.merge_arrays:
+  lc: 88
+  title: Merge Sorted Array
+  category: Array/String
+kv.rotate_buffer:
+  lc: 189
+  title: Rotate Array
+  category: Array/String
+kv.ring_search:
+  lc: 33
+  title: Search in Rotated Sorted Array
+  category: Binary Search
+kv.ring_head:
+  lc: 153
+  title: Find Minimum in Rotated Sorted Array
+  category: Binary Search
+kv.longest_run:
+  lc: 128
+  title: Longest Consecutive Sequence
+  category: Hashmap
+kv.free_ranges:
+  lc: 228
+  title: Summary Ranges
+  category: Intervals
+kv.seq_range:
+  lc: 34
+  title: Find First and Last Position of Element in Sorted Array
+  category: Binary Search
+kv.page_lookup:
+  lc: 74
+  title: Search a 2D Matrix
+  category: Binary Search
+kv.popcount:
+  lc: 191
+  title: Number of 1 Bits
+  category: Bit Manipulation
+kv.leaked:
+  lc: 136
+  title: Single Number
+  category: Bit Manipulation
+kv.random_evict:
+  lc: 380
+  title: Insert Delete GetRandom O(1)
+  category: Array/String
+kv.lfu:
+  lc: 460
+  title: LFU Cache
+  category: Design
+kv.ring_queue:
+  lc: 622
+  title: Design Circular Queue
+  category: Design
+kv.snapshot:
+  lc: 1146
+  title: Snapshot Array
+  category: Binary Search
+kv.versioned:
+  lc: 981
+  title: Time Based Key-Value Store
+  category: Binary Search
+kv.mem_alloc:
+  lc: 2502
+  title: Design Memory Allocator
+  category: Design
+kv.refcount:
+  lc: 432
+  title: All O(1) Data Structure
+  category: Design
+kv.block_hash:
+  lc: 706
+  title: Design HashMap
+  category: Design
+kv.free_tracker:
+  lc: 352
+  title: Data Stream as Disjoint Intervals
+  category: Design
+kv.address_ranges:
+  lc: 715
+  title: Range Module
+  category: Design
+prefix.trie:
+  lc: 208
+  title: Implement Trie (Prefix Tree)
+  category: Trie
+prefix.fork_point:
+  lc: 236
+  title: Lowest Common Ancestor of a Binary Tree
+  category: Binary Tree General
+prefix.depth:
+  lc: 104
+  title: Maximum Depth of Binary Tree
+  category: Binary Tree General
+prefix.level_dump:
+  lc: 102
+  title: Binary Tree Level Order Traversal
+  category: Binary Tree BFS
+prefix.same_snapshot:
+  lc: 100
+  title: Same Tree
+  category: Binary Tree General
+index.iter:
+  lc: 173
+  title: Binary Search Tree Iterator
+  category: Binary Tree General
+index.kth:
+  lc: 230
+  title: Kth Smallest Element in a BST
+  category: Binary Search Tree
+index.validate:
+  lc: 98
+  title: Validate Binary Search Tree
+  category: Binary Search Tree
+index.min_gap:
+  lc: 530
+  title: Minimum Absolute Difference in BST
+  category: Binary Search Tree
+index.build:
+  lc: 108
+  title: Convert Sorted Array to Binary Search Tree
+  category: Divide & Conquer
+prefix.codec:
+  lc: 297
+  title: Serialize and Deserialize Binary Tree
+  category: Design
+prefix.hit_sum:
+  lc: 677
+  title: Map Sum Pairs
+  category: Trie
+index.range_sum:
+  lc: 307
+  title: Range Sum Query - Mutable
+  category: Segment Tree
+index.insert:
+  lc: 701
+  title: Insert into a Binary Search Tree
+  category: Binary Search Tree
+index.delete:
+  lc: 450
+  title: Delete Node in a BST
+  category: Binary Search Tree
+index.restore:
+  lc: 1008
+  title: Construct Binary Search Tree from Preorder Traversal
+  category: Binary Search Tree
+ir.order_ok:
+  lc: 207
+  title: Course Schedule
+  category: Graph General
+ir.order:
+  lc: 210
+  title: Course Schedule II
+  category: Graph General
+ir.clone:
+  lc: 133
+  title: Clone Graph
+  category: Graph General
+ir.rpn:
+  lc: 150
+  title: Evaluate Reverse Polish Notation
+  category: Stack
+config.brackets:
+  lc: 20
+  title: Valid Parentheses
+  category: Stack
+config.norm_path:
+  lc: 71
+  title: Simplify Path
+  category: Stack
+config.expr:
+  lc: 224
+  title: Basic Calculator
+  category: Stack
+ir.op_latency:
+  lc: 743
+  title: Network Delay Time
+  category: Shortest Path
+ir.critical_path:
+  lc: 2050
+  title: Parallel Courses III
+  category: Topological Sort
+ir.device_groups:
+  lc: 547
+  title: Number of Provinces
+  category: Union Find
+config.expand:
+  lc: 394
+  title: Decode String
+  category: Stack
+config.arith:
+  lc: 227
+  title: Basic Calculator II
+  category: Stack
+ir.depends_on:
+  lc: 1462
+  title: Course Schedule IV
+  category: Graph
+ir.computable:
+  lc: 2115
+  title: Find All Possible Recipes from Given Supplies
+  category: Topological Sort
+config.strip_comments:
+  lc: 722
+  title: Remove Comments
+  category: String
+config.flags:
+  lc: 1106
+  title: Parsing A Boolean Expression
+  category: Stack
+config.glob:
+  lc: 44
+  title: Wildcard Matching
+  category: Multidimensional DP
+eval.edit_distance:
+  lc: 72
+  title: Edit Distance
+  category: Multidimensional DP
+eval.interleave_ok:
+  lc: 97
+  title: Interleaving String
+  category: Multidimensional DP
+decode.beam_pairs:
+  lc: 373
+  title: Find K Pairs with Smallest Sums
+  category: Heap
+bench.choose:
+  lc: 77
+  title: Combinations
+  category: Backtracking
+bench.orders:
+  lc: 46
+  title: Permutations
+  category: Backtracking
+bench.json_fuzz:
+  lc: 22
+  title: Generate Parentheses
+  category: Backtracking
+eval.rouge_l:
+  lc: 1143
+  title: Longest Common Subsequence
+  category: Multidimensional DP
+decode.regex:
+  lc: 10
+  title: Regular Expression Matching
+  category: Multidimensional DP
+dash.mask_failed:
+  lc: 73
+  title: Set Matrix Zeroes
+  category: Matrix
+dash.region_sum:
+  lc: 304
+  title: Range Sum Query 2D - Immutable
+  category: Prefix Sum
+dash.fuzzy:
+  lc: 392
+  title: Is Subsequence
+  category: Two Pointers
+metrics.slowest_k:
+  lc: 703
+  title: Kth Largest Element in a Stream
+  category: Heap
+metrics.corrected:
+  lc: 2034
+  title: Stock Price Fluctuation
+  category: Heap
+metrics.busy_time:
+  lc: 2276
+  title: Count Integers in Intervals
+  category: Design
+autoscale.min_throughput:
+  lc: 1011
+  title: Capacity To Ship Packages Within D Days
+  category: Binary Search
+autoscale.min_rate:
+  lc: 875
+  title: Koko Eating Bananas
+  category: Binary Search
+autoscale.min_time:
+  lc: 2187
+  title: Minimum Time to Complete Trips
+  category: Binary Search

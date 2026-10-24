@@ -1,0 +1,947 @@
+# 自动生成，请勿手改。每个练习的领域需求、所在文件与函数签名。
+# LeetCode 对应关系在 .spoilers/lc_map.yaml（想保持无剧透就别打开）。
+milestones:
+  M1: 分词、采样、流式输出：单请求生成
+  M2: 服务器：连续 batching、准入、多 worker、传输、离线批任务规划
+  M3: KV Cache 块管理器：分页分配、空闲表、淘汰策略、快照与泄漏检测
+  M4: 前缀缓存与 deadline 索引：Trie、BST 索引、持久化
+  M5: 模型 IR 与配置：计算图编译执行、配置解析
+  M6: 解码与评测：投机解码草稿树、评测指标、benchmark 与 fuzz
+  M7: 可观测性与自动扩缩容：指标面板、容量规划
+exercises:
+- id: tok.segment
+  ms: M1
+  fit: natural
+  module: nanoserve/tokenizer/segment.py
+  symbol: can_segment
+  sig: 'can_segment(text: str, vocab: list[str]) -> bool'
+  domain: 编码前校验：文本能否被完整切分为词表中的 token（token 可重复使用）
+  track: lc150
+- id: tok.common_prefix
+  ms: M1
+  fit: natural
+  module: nanoserve/tokenizer/prefix.py
+  symbol: common_prefix
+  sig: 'common_prefix(prompts: list[str]) -> str'
+  domain: 找出一批 prompt 的最长公共前缀，用于检测共享 system prompt
+  track: lc150
+- id: stream.find_stop
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/stop.py
+  symbol: find_stop
+  sig: 'find_stop(text: str, stop: str) -> int'
+  domain: stop string 在已生成文本中首次出现的位置，没有则 -1
+  track: lc150
+- id: stream.justify
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/render.py
+  symbol: justify
+  sig: 'justify(words: list[str], width: int) -> list[str]'
+  domain: CLI 输出的两端对齐排版
+  track: lc150
+- id: stream.holdback
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/detok.py
+  symbol: trailing_word_len
+  sig: 'trailing_word_len(s: str) -> int'
+  domain: 最后一个单词的长度（忽略尾部空白），流式输出时用来扣住半个单词
+  track: lc150
+- id: stream.unique_run
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/repetition.py
+  symbol: longest_unique_run
+  sig: 'longest_unique_run(s: str) -> int'
+  domain: 退化检测指标：输出中不含重复字符的最长连续片段长度
+  track: lc150
+- id: stream.repeat_window
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/repetition.py
+  symbol: repeats_within
+  sig: 'repeats_within(tokens: list[int], k: int) -> bool'
+  domain: no-repeat 窗口：是否有同一 token 在距离 ≤ k 内重复出现
+  track: lc150
+- id: sample.cdf_index
+  ms: M1
+  fit: natural
+  module: nanoserve/sampling/search.py
+  symbol: cdf_index
+  sig: 'cdf_index(cdf: list[float], r: float) -> int'
+  domain: 按累积分布采样：返回 r 在严格递增 CDF 中的位置或插入点（O(log n)）
+  track: lc150
+- id: sample.kth_largest
+  ms: M1
+  fit: natural
+  module: nanoserve/sampling/topk.py
+  symbol: kth_largest
+  sig: 'kth_largest(logits: list[float], k: int) -> float'
+  domain: top-k 采样的阈值：第 k 大的 logit
+  track: lc150
+- id: tok.top_pieces
+  ms: M1
+  fit: natural
+  module: nanoserve/tokenizer/train.py
+  symbol: top_k_pieces
+  sig: 'top_k_pieces(pieces: list[str], k: int) -> list[str]'
+  domain: 训练词表：出现频率最高的 k 个片段（保证答案唯一），优于 O(n log n)
+  track: other
+- id: stream.multi_stop
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/multistop.py
+  symbol: MultiStopMatcher
+  sig: 'class MultiStopMatcher(stops: list[str]): feed(ch: str) -> bool'
+  domain: 流式多 stop string 检测：每喂入一个字符，判断当前输出是否以任一 stop string 结尾
+  track: other
+- id: stream.stop_overlap
+  ms: M1
+  fit: natural
+  module: nanoserve/stream/overlap.py
+  symbol: longest_border
+  sig: 'longest_border(s: str) -> str'
+  domain: 最长的「既是真前缀又是后缀」的子串（KMP 前缀函数）；引擎用它精确算出输出尾部与 stop string 开头重叠多少，只扣留这么多字符
+  track: other
+- id: stream.frame_codec
+  ms: M2
+  fit: natural
+  module: nanoserve/stream/protocol.py
+  symbol: FrameCodec
+  sig: 'class FrameCodec: encode(chunks: list[str]) -> str; decode(data: str) -> list[str]'
+  domain: 流式协议分帧：把任意字符串列表（可含任何字符）编码成一个字符串并无损解码
+  track: other
+- id: metrics.median
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/latency.py
+  symbol: MedianTracker
+  sig: 'class MedianTracker: add(x: int) -> None; median() -> float'
+  domain: 在线 p50 延迟
+  track: lc150
+- id: metrics.merged_median
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/latency.py
+  symbol: merged_median
+  sig: 'merged_median(a: list[int], b: list[int]) -> float'
+  domain: 合并两个 worker 各自有序的延迟样本求中位数，O(log(m+n))
+  track: lc150
+- id: sched.merge_busy
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/timeline.py
+  symbol: merge_busy
+  sig: 'merge_busy(intervals: list[list[int]]) -> list[list[int]]'
+  domain: 合并 GPU 忙碌区间，计算利用率
+  track: lc150
+- id: sched.insert_busy
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/timeline.py
+  symbol: insert_busy
+  sig: 'insert_busy(intervals: list[list[int]], new: list[int]) -> list[list[int]]'
+  domain: 向已排序且不重叠的忙碌时间线插入新区间
+  track: lc150
+- id: sched.min_launches
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/batching.py
+  symbol: min_launches
+  sig: 'min_launches(windows: list[list[int]]) -> int'
+  domain: 每个请求有 [最早, 最晚] 可服务窗口，一次 batch 发射在时刻 t 服务所有包含 t 的窗口；求最少发射次数
+  track: lc150
+- id: metrics.dominant
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/tenants.py
+  symbol: dominant_tenant
+  sig: 'dominant_tenant(requests: list[int] | list[str]) -> int | str'
+  domain: 热点租户检测：返回占请求一半以上的租户（无多数时返回任意候选，由调用方计数确认），O(1) 额外空间
+  track: lc150
+- id: metrics.max_burst
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/burst.py
+  symbol: max_burst
+  sig: 'max_burst(deltas: list[int]) -> int'
+  domain: 队列长度每秒变化量，求最大连续累计增长（最大突发）
+  track: lc150
+- id: metrics.max_burst_circular
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/burst.py
+  symbol: max_burst_circular
+  sig: 'max_burst_circular(deltas: list[int]) -> int'
+  domain: 同上，但数据是按天循环的周期序列（可跨越末尾回到开头）
+  track: lc150
+- id: sched.weighted_route
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/routing.py
+  symbol: WeightedRouter
+  sig: 'class WeightedRouter(weights: list[int]): pick() -> int'
+  domain: 按权重把请求路由到 worker：返回下标 i 的概率为 w[i]/sum(w)
+  track: other
+- id: sched.capacity_ok
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/capacity.py
+  symbol: fits_capacity
+  sig: 'fits_capacity(requests: list[list[int]], capacity: int) -> bool'
+  domain: 每个请求 [占用块数, 开始, 结束)，判断任意时刻总占用都不超过显存容量
+  track: other
+- id: sched.sjf
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/simulate.py
+  symbol: sjf_order
+  sig: 'sjf_order(tasks: list[list[int]]) -> list[int]'
+  domain: 单 worker 最短作业优先调度模拟：tasks[i]=[到达时间, 处理时长]，返回处理顺序
+  track: other
+- id: sched.assign_workers
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/simulate.py
+  symbol: assign_workers
+  sig: 'assign_workers(weights: list[int], tasks: list[int]) -> list[int]'
+  domain: 多 worker 分配模拟：第 j 秒到达任务 j，交给空闲中权重最小（再按下标）的 worker
+  track: other
+- id: sched.busiest_worker
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/simulate.py
+  symbol: busiest_worker
+  sig: 'busiest_worker(n: int, jobs: list[list[int]]) -> int'
+  domain: n 个 worker，任务延后但保持时长；返回承接任务最多的 worker（并列取最小下标）
+  track: other
+- id: sched.cooldown
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/cooldown.py
+  symbol: min_slots_with_cooldown
+  sig: 'min_slots_with_cooldown(adapters: list[str], n: int) -> int'
+  domain: 同一 LoRA adapter 两次加载之间至少间隔 n 个时间片，求执行完所有任务的最少时间片
+  track: other
+- id: metrics.qps
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/window.py
+  symbol: QpsCounter
+  sig: 'class QpsCounter: hit(t: int) -> int'
+  domain: 最近 3000ms 内的请求数（t 严格递增）
+  track: other
+- id: metrics.window_max
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/window.py
+  symbol: window_max
+  sig: 'window_max(latencies: list[int], k: int) -> list[int]'
+  domain: 滚动窗口最大延迟，O(n)
+  track: other
+- id: metrics.window_median
+  ms: M2
+  fit: natural
+  module: nanoserve/metrics/window.py
+  symbol: window_median
+  sig: 'window_median(latencies: list[int], k: int) -> list[float]'
+  domain: 滚动窗口 p50 延迟
+  track: other
+- id: server.utf8_ok
+  ms: M2
+  fit: natural
+  module: nanoserve/server/utf8.py
+  symbol: utf8_valid
+  sig: 'utf8_valid(data: list[int]) -> bool'
+  domain: 流式传输按字节切包，客户端在缓冲区构成合法 UTF-8 时才解码预览
+  track: other
+- id: server.tokens
+  ms: M2
+  fit: natural
+  module: nanoserve/server/auth_tokens.py
+  symbol: TokenManager
+  sig: 'class TokenManager(ttl: int): generate(token_id: str, now: int); renew(token_id: str, now: int); count_unexpired(now: int) -> int'
+  domain: API token 管理：带 TTL 的签发、续期、统计有效 token
+  track: other
+- id: sched.slots
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/batch_slots.py
+  symbol: SlotAllocator
+  sig: 'class SlotAllocator(n: int): reserve() -> int; unreserve(slot: int) -> None'
+  domain: 运行中 batch 的槽位分配器：总是分配编号最小的空闲槽（1..n）
+  track: other
+- id: sched.maintenance
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/calendar.py
+  symbol: MaintenanceCalendar
+  sig: 'class MaintenanceCalendar: book(start: int, end: int) -> bool'
+  domain: 维护窗口预约：半开区间 [start, end) 不得与已有预约重叠
+  track: other
+- id: sched.min_workers
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/planning.py
+  symbol: min_workers
+  sig: 'min_workers(intervals: list[list[int]]) -> int'
+  domain: 容量规划：请求占用闭区间 [start, end]，同一 worker 上不能重叠，最少需要几个 worker
+  track: other
+- id: sched.slo_bound
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/planning.py
+  symbol: max_on_time
+  sig: 'max_on_time(jobs: list[list[int]]) -> int'
+  domain: SLO 上界：jobs[i]=[时长, 截止时刻]，单 worker 串行最多能按时完成多少个请求
+  track: other
+- id: sched.rr_busiest
+  ms: M2
+  fit: natural
+  module: nanoserve/scheduler/lb.py
+  symbol: busiest_servers
+  sig: 'busiest_servers(k: int, arrival: list[int], load: list[int]) -> list[int]'
+  domain: 轮询负载均衡（第 i 个请求从 i%k 号开始找第一个空闲 worker，全忙则丢弃）后，处理请求最多的 worker
+  track: other
+- id: kv.lru
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/lru.py
+  symbol: LRUBlockCache
+  sig: 'class LRUBlockCache(capacity: int): get(key: int) -> int; put(key: int, value: int) -> None'
+  domain: KV 块 LRU 缓存，get/put 均 O(1)
+  track: lc150
+- id: kv.fork
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/block_table.py
+  symbol: fork_chain
+  sig: 'fork_chain(head: RandomListNode | None) -> RandomListNode | None'
+  domain: 并行采样时 fork 一条块链：每个块有 next 和指向链中任意块的 random（共享引用），深拷贝
+  track: lc150
+- id: kv.has_cycle
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/block_table.py
+  symbol: has_cycle
+  sig: 'has_cycle(head: ListNode | None) -> bool'
+  domain: 块链损坏检测：是否成环，O(1) 空间
+  track: lc150
+- id: kv.partition_hot
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/block_table.py
+  symbol: partition_by_heat
+  sig: 'partition_by_heat(head: ListNode | None, x: int) -> ListNode | None'
+  domain: 热度 < x 的块排到前面，两部分内部保持原相对顺序
+  track: lc150
+- id: kv.merge_free
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/free_list.py
+  symbol: merge_free_lists
+  sig: 'merge_free_lists(a: ListNode | None, b: ListNode | None) -> ListNode | None'
+  domain: 合并两条按块号有序的空闲链表
+  track: lc150
+- id: kv.merge_free_k
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/free_list.py
+  symbol: merge_k_free_lists
+  sig: 'merge_k_free_lists(lists: list[ListNode | None]) -> ListNode | None'
+  domain: 合并 k 个 worker 回收的有序空闲链表
+  track: lc150
+- id: kv.sort_free
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/free_list.py
+  symbol: sort_free_list
+  sig: 'sort_free_list(head: ListNode | None) -> ListNode | None'
+  domain: 碎片整理：把空闲链表按块号排序，O(n log n)
+  track: lc150
+- id: kv.drop_double_free
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/free_list.py
+  symbol: drop_double_freed
+  sig: 'drop_double_freed(head: ListNode | None) -> ListNode | None'
+  domain: 有序空闲链表中被重复释放的块号全部隔离（凡出现多次的块号一个不留）
+  track: lc150
+- id: kv.compact
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/compact.py
+  symbol: remove_freed
+  sig: 'remove_freed(slots: list[int], freed: int) -> int'
+  domain: 原地压缩：去掉所有等于 freed 标记的槽位，返回剩余长度
+  track: lc150
+- id: kv.dedupe
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/compact.py
+  symbol: dedupe_sorted
+  sig: 'dedupe_sorted(ids: list[int]) -> int'
+  domain: 有序块号原地去重，返回唯一元素个数
+  track: lc150
+- id: kv.merge_arrays
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/compact.py
+  symbol: merge_into
+  sig: 'merge_into(a: list[int], m: int, b: list[int], n: int) -> None'
+  domain: 把有序空闲块号数组 b 原地合并进 a（a 尾部预留 n 个 0）
+  track: lc150
+- id: kv.rotate_buffer
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/ring.py
+  symbol: rotate_right
+  sig: 'rotate_right(buf: list[int], k: int) -> None'
+  domain: 环形缓冲区原地右移 k 位，O(1) 额外空间
+  track: lc150
+- id: kv.ring_search
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/ring.py
+  symbol: ring_search
+  sig: 'ring_search(buf: list[int], target: int) -> int'
+  domain: 在旋转过的有序环形缓冲（元素互不相同）中查找，O(log n)
+  track: lc150
+- id: kv.ring_head
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/ring.py
+  symbol: ring_min
+  sig: 'ring_min(buf: list[int]) -> int'
+  domain: 找到环形缓冲的逻辑起点（最小值），O(log n)
+  track: lc150
+- id: kv.longest_run
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/allocator.py
+  symbol: longest_free_run
+  sig: 'longest_free_run(ids: list[int]) -> int'
+  domain: 无序空闲块号中最长连续块号段的长度，O(n)
+  track: lc150
+- id: kv.free_ranges
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/allocator.py
+  symbol: free_ranges
+  sig: 'free_ranges(ids: list[int]) -> list[str]'
+  domain: 把有序不重复空闲块号压缩成 'a->b' / 'a' 区间描述
+  track: lc150
+- id: kv.seq_range
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/allocator.py
+  symbol: owner_range
+  sig: 'owner_range(owners: list[int], seq_id: int) -> list[int]'
+  domain: 按所属序列号排序的块表中，某序列占用的首尾下标，没有则 [-1,-1]，O(log n)
+  track: lc150
+- id: kv.page_lookup
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/page_table.py
+  symbol: page_exists
+  sig: 'page_exists(table: list[list[int]], addr: int) -> bool'
+  domain: 二维页表（每行有序，下一行首元素大于上一行末元素）中查找地址，O(log(mn))
+  track: lc150
+- id: kv.popcount
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/bitmap.py
+  symbol: popcount
+  sig: 'popcount(n: int) -> int'
+  domain: 位图分配器：统计已占用块数
+  track: lc150
+- id: kv.leaked
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/leak.py
+  symbol: find_leaked
+  sig: 'find_leaked(events: list[int]) -> int'
+  domain: 分配与释放日志中每个块号出现两次，唯一只出现一次的就是泄漏块；O(1) 空间
+  track: lc150
+- id: kv.random_evict
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/evict.py
+  symbol: RandomEvictSet
+  sig: 'class RandomEvictSet: insert(x) -> bool; remove(x) -> bool; pick() -> int'
+  domain: 随机淘汰策略的候选集合，三个操作均摊 O(1)
+  track: lc150
+- id: kv.lfu
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/lfu.py
+  symbol: LFUBlockCache
+  sig: 'class LFUBlockCache(capacity: int): get(key: int) -> int; put(key: int, value: int) -> None'
+  domain: LFU 淘汰策略（频率相同按 LRU），O(1)
+  track: other
+- id: kv.ring_queue
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/ring_queue.py
+  symbol: RingQueue
+  sig: 'class RingQueue(k: int): enqueue(x) -> bool; dequeue() -> bool; front() -> int; rear() -> int; is_empty() -> bool; is_full() -> bool'
+  domain: 固定容量环形请求队列
+  track: other
+- id: kv.snapshot
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/snapshot.py
+  symbol: SnapshotTable
+  sig: 'class SnapshotTable(length: int): set(index, val); snap() -> int; get(index, snap_id) -> int'
+  domain: copy-on-write 块表快照：只记录变化，按快照号查询历史值
+  track: other
+- id: kv.versioned
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/versioned.py
+  symbol: VersionedStore
+  sig: 'class VersionedStore: set(key, value, ts); get(key, ts) -> str'
+  domain: 带时间戳的多版本缓存条目，查询不晚于 ts 的最新版本
+  track: other
+- id: kv.mem_alloc
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/memalloc.py
+  symbol: MemoryAllocator
+  sig: 'class MemoryAllocator(n: int): allocate(size, owner) -> int; free(owner) -> int'
+  domain: first-fit 显存分配器：分配最左侧连续空闲段，按 owner 释放
+  track: other
+- id: kv.refcount
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/refcount.py
+  symbol: RefCounter
+  sig: 'class RefCounter: inc(key); dec(key); max_key() -> str; min_key() -> str'
+  domain: 块引用计数，O(1) 取引用最多/最少的块
+  track: other
+- id: kv.block_hash
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/hashmap.py
+  symbol: BlockHashMap
+  sig: 'class BlockHashMap: put(key: int, value: int); get(key: int) -> int; remove(key: int)'
+  domain: 块内容哈希 → 块号的去重表，不许用内置 dict/set
+  track: other
+- id: kv.free_tracker
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/free_tracker.py
+  symbol: FreeRangeTracker
+  sig: 'class FreeRangeTracker: add(block: int); ranges() -> list[list[int]]'
+  domain: 在线维护空闲块号的不相交区间
+  track: other
+- id: kv.address_ranges
+  ms: M3
+  fit: natural
+  module: nanoserve/kvcache/address_ranges.py
+  symbol: AddressRanges
+  sig: 'class AddressRanges: add_range(left: int, right: int); query_range(left: int, right: int) -> bool; remove_range(left: int, right: int)'
+  domain: 已分配地址区间跟踪（半开区间），支持增、删、整段查询
+  track: other
+- id: prefix.trie
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/trie.py
+  symbol: PrefixTrie
+  sig: 'class PrefixTrie: insert(word); search(word) -> bool; starts_with(prefix) -> bool'
+  domain: 前缀缓存的字典树（每个 token 映射为一个字符）
+  track: lc150
+- id: prefix.fork_point
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/tree_ops.py
+  symbol: fork_point
+  sig: 'fork_point(root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode'
+  domain: deadline 索引的区间查询：两个节点的最近公共祖先就是区间的分叉节点，只需遍历它的子树
+  track: lc150
+- id: prefix.depth
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/tree_ops.py
+  symbol: max_depth
+  sig: 'max_depth(root: TreeNode | None) -> int'
+  domain: deadline 索引的平衡监控：树高超过阈值就整体重建
+  track: lc150
+- id: prefix.level_dump
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/dump.py
+  symbol: level_dump
+  sig: 'level_dump(root: TreeNode | None) -> list[list[int]]'
+  domain: 按层 dump deadline 索引（调试视图）
+  track: lc150
+- id: prefix.same_snapshot
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/snapshot.py
+  symbol: same_tree
+  sig: 'same_tree(a: TreeNode | None, b: TreeNode | None) -> bool'
+  domain: checkpoint 读回校验：恢复出的索引与原索引结构、取值完全一致
+  track: lc150
+- id: index.iter
+  ms: M4
+  fit: natural
+  module: nanoserve/index/deadline.py
+  symbol: DeadlineIterator
+  sig: 'class DeadlineIterator(root): next() -> int; has_next() -> bool'
+  domain: 按 deadline 从早到晚迭代 BST 索引，O(h) 空间
+  track: lc150
+- id: index.kth
+  ms: M4
+  fit: natural
+  module: nanoserve/index/deadline.py
+  symbol: kth_earliest
+  sig: 'kth_earliest(root: TreeNode, k: int) -> int'
+  domain: 第 k 早的 deadline（1-based）
+  track: lc150
+- id: index.validate
+  ms: M4
+  fit: natural
+  module: nanoserve/index/deadline.py
+  symbol: is_valid_index
+  sig: 'is_valid_index(root: TreeNode | None) -> bool'
+  domain: 索引不变量检查：是否为严格 BST
+  track: lc150
+- id: index.min_gap
+  ms: M4
+  fit: natural
+  module: nanoserve/index/deadline.py
+  symbol: min_gap
+  sig: 'min_gap(root: TreeNode) -> int'
+  domain: 任意两个 deadline 的最小间隔
+  track: lc150
+- id: index.build
+  ms: M4
+  fit: natural
+  module: nanoserve/index/deadline.py
+  symbol: build_balanced
+  sig: 'build_balanced(sorted_vals: list[int]) -> TreeNode | None'
+  domain: 从有序 deadline 数组构建高度平衡的 BST 索引
+  track: lc150
+- id: prefix.codec
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/codec.py
+  symbol: TreeCodec
+  sig: 'class TreeCodec: serialize(root) -> str; deserialize(data: str) -> TreeNode | None'
+  domain: 缓存树持久化：任意格式，只要能无损往返（值可重复、可为负）
+  track: other
+- id: prefix.hit_sum
+  ms: M4
+  fit: natural
+  module: nanoserve/prefix/hit_sum.py
+  symbol: PrefixHitSum
+  sig: 'class PrefixHitSum: insert(key: str, val: int); sum(prefix: str) -> int'
+  domain: 前缀缓存统计：以某前缀开头的所有键的命中值之和（重复 insert 覆盖）
+  track: other
+- id: index.range_sum
+  ms: M4
+  fit: natural
+  module: nanoserve/index/fenwick.py
+  symbol: RangeCounter
+  sig: 'class RangeCounter(nums: list[int]): update(i, val); sum_range(l, r) -> int'
+  domain: 按 deadline 桶统计 token 数，支持单点修改和区间求和（O(log n)）
+  track: other
+- id: index.insert
+  ms: M4
+  fit: natural
+  module: nanoserve/index/bst_ops.py
+  symbol: insert_key
+  sig: 'insert_key(root: TreeNode | None, val: int) -> TreeNode'
+  domain: 向 deadline 索引插入新请求（val 不在树中）
+  track: other
+- id: index.delete
+  ms: M4
+  fit: natural
+  module: nanoserve/index/bst_ops.py
+  symbol: delete_key
+  sig: 'delete_key(root: TreeNode | None, key: int) -> TreeNode | None'
+  domain: 请求完成后从 deadline 索引删除
+  track: other
+- id: index.restore
+  ms: M4
+  fit: natural
+  module: nanoserve/index/bst_ops.py
+  symbol: bst_from_preorder
+  sig: 'bst_from_preorder(preorder: list[int]) -> TreeNode | None'
+  domain: 从 checkpoint 中的前序序列恢复索引，O(n)
+  track: other
+- id: ir.order_ok
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/graph.py
+  symbol: can_schedule
+  sig: 'can_schedule(n: int, deps: list[list[int]]) -> bool'
+  domain: 算子依赖 [a, b] 表示 a 依赖 b；判断计算图是否无环可调度
+  track: lc150
+- id: ir.order
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/graph.py
+  symbol: topo_order
+  sig: 'topo_order(n: int, deps: list[list[int]]) -> list[int]'
+  domain: 给出任一合法算子执行顺序，有环返回 []
+  track: lc150
+- id: ir.clone
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/graph.py
+  symbol: clone_graph
+  sig: 'clone_graph(node: GraphNode | None) -> GraphNode | None'
+  domain: 图优化 pass 前深拷贝计算图
+  track: lc150
+- id: ir.rpn
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/interp.py
+  symbol: eval_rpn
+  sig: 'eval_rpn(tokens: list[str]) -> int'
+  domain: IR 字节码（后缀表达式）解释器，除法向零截断
+  track: lc150
+- id: config.brackets
+  ms: M5
+  fit: natural
+  module: nanoserve/config/parser.py
+  symbol: brackets_balanced
+  sig: 'brackets_balanced(s: str) -> bool'
+  domain: 配置解析前检查 ()[]{} 是否正确配对
+  track: lc150
+- id: config.norm_path
+  ms: M5
+  fit: natural
+  module: nanoserve/config/paths.py
+  symbol: normalize_path
+  sig: 'normalize_path(path: str) -> str'
+  domain: 规范化 Unix 风格模型路径
+  track: lc150
+- id: config.expr
+  ms: M5
+  fit: natural
+  module: nanoserve/config/expr.py
+  symbol: eval_expr
+  sig: 'eval_expr(s: str) -> int'
+  domain: 配置中的 + - ( ) 表达式求值（含一元负号），不许用 eval
+  track: lc150
+- id: ir.op_latency
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/latency.py
+  symbol: broadcast_latency
+  sig: 'broadcast_latency(edges: list[list[int]], n: int, src: int) -> int'
+  domain: 设备 1..n 间有向带权链路，从 src 广播到所有设备的最短完成时间，不可达 -1
+  track: other
+- id: ir.critical_path
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/latency.py
+  symbol: critical_path_time
+  sig: 'critical_path_time(n: int, deps: list[list[int]], cost: list[int]) -> int'
+  domain: 算子 1..n，[a,b] 表示 b 依赖 a，无限并行下跑完整张图的最短时间（关键路径）
+  track: other
+- id: ir.device_groups
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/topology.py
+  symbol: count_device_groups
+  sig: 'count_device_groups(linked: list[list[int]]) -> int'
+  domain: 设备互联邻接矩阵中直接或间接互联的设备组数（用并查集）
+  track: other
+- id: config.expand
+  ms: M5
+  fit: natural
+  module: nanoserve/config/template.py
+  symbol: expand_template
+  sig: 'expand_template(s: str) -> str'
+  domain: 配置模板展开：k[片段] 表示片段重复 k 次，可嵌套
+  track: other
+- id: config.arith
+  ms: M5
+  fit: natural
+  module: nanoserve/config/arith.py
+  symbol: eval_arith
+  sig: 'eval_arith(s: str) -> int'
+  domain: 配置中的 + - * / 表达式（无括号，除法向零截断），不许用 eval
+  track: other
+- id: ir.depends_on
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/reach.py
+  symbol: depends_queries
+  sig: 'depends_queries(n: int, deps: list[list[int]], queries: list[list[int]]) -> list[bool]'
+  domain: '[a, b] 表示 a 必须先于 b；回答 [u, v]：u 是否（传递地）必须先于 v，用于判断两个算子能否并行'
+  track: other
+- id: ir.computable
+  ms: M5
+  fit: natural
+  module: nanoserve/ir/reach.py
+  symbol: computable_outputs
+  sig: 'computable_outputs(outputs: list[str], inputs: list[list[str]], provided: list[str]) -> list[str]'
+  domain: 给定已提供的张量，哪些算子输出可以被算出来（输出也可作为别人的输入）
+  track: other
+- id: config.strip_comments
+  ms: M5
+  fit: natural
+  module: nanoserve/config/comments.py
+  symbol: strip_comments
+  sig: 'strip_comments(lines: list[str]) -> list[str]'
+  domain: 配置文件去掉 // 行注释和 /* */ 块注释（块注释可跨行），删除变空的行
+  track: other
+- id: config.flags
+  ms: M5
+  fit: natural
+  module: nanoserve/config/flags.py
+  symbol: eval_flag_expr
+  sig: 'eval_flag_expr(expr: str) -> bool'
+  domain: feature flag 条件表达式：t、f、!(x)、&(x,y,...)、|(x,y,...)
+  track: other
+- id: config.glob
+  ms: M5
+  fit: natural
+  module: nanoserve/config/glob.py
+  symbol: glob_match
+  sig: 'glob_match(s: str, p: str) -> bool'
+  domain: 路由规则的模型名 glob 匹配：? 匹配单字符，* 匹配任意串，整串匹配
+  track: other
+- id: eval.edit_distance
+  ms: M6
+  fit: natural
+  module: nanoserve/eval/metrics.py
+  symbol: edit_distance
+  sig: 'edit_distance(a: str, b: str) -> int'
+  domain: 输出与参考答案的编辑距离
+  track: lc150
+- id: eval.interleave_ok
+  ms: M6
+  fit: natural
+  module: nanoserve/eval/streams.py
+  symbol: is_interleaving
+  sig: 'is_interleaving(a: str, b: str, merged: str) -> bool'
+  domain: 校验多路复用输出流 merged 是否由两个请求的输出交错而成
+  track: lc150
+- id: decode.beam_pairs
+  ms: M6
+  fit: natural
+  module: nanoserve/decode/beam.py
+  symbol: k_best_pairs
+  sig: 'k_best_pairs(a: list[int], b: list[int], k: int) -> list[list[int]]'
+  domain: 两步 beam 扩展：两个升序代价列表中代价和最小的 k 对
+  track: lc150
+- id: bench.choose
+  ms: M6
+  fit: natural
+  module: nanoserve/bench/sweep.py
+  symbol: choose
+  sig: 'choose(n: int, k: int) -> list[list[int]]'
+  domain: 从 1..n 个特性开关中选 k 个的所有组合
+  track: lc150
+- id: bench.orders
+  ms: M6
+  fit: natural
+  module: nanoserve/bench/fuzz.py
+  symbol: arrival_orders
+  sig: 'arrival_orders(ids: list[int]) -> list[list[int]]'
+  domain: 调度器确定性测试：枚举请求的所有到达顺序
+  track: lc150
+- id: bench.json_fuzz
+  ms: M6
+  fit: natural
+  module: nanoserve/bench/fuzz.py
+  symbol: balanced_brackets
+  sig: 'balanced_brackets(n: int) -> list[str]'
+  domain: 约束解码 fuzzer：生成所有 n 对括号的合法嵌套结构
+  track: lc150
+- id: eval.rouge_l
+  ms: M6
+  fit: natural
+  module: nanoserve/eval/rouge.py
+  symbol: lcs_length
+  sig: 'lcs_length(a: str, b: str) -> int'
+  domain: ROUGE-L 的核心：输出与参考的最长公共子序列长度
+  track: other
+- id: decode.regex
+  ms: M6
+  fit: natural
+  module: nanoserve/decode/regex.py
+  symbol: full_match
+  sig: 'full_match(s: str, p: str) -> bool'
+  domain: 约束解码校验：输出是否完整匹配只含 '.' 与 '*' 的正则
+  track: other
+- id: dash.mask_failed
+  ms: M7
+  fit: natural
+  module: nanoserve/dashboard/health.py
+  symbol: mask_failures
+  sig: 'mask_failures(m: list[list[int]]) -> None'
+  domain: worker×model 健康矩阵：出现 0 的行与列整体置 0，原地，O(1) 额外空间为进阶
+  track: lc150
+- id: dash.region_sum
+  ms: M7
+  fit: natural
+  module: nanoserve/dashboard/region.py
+  symbol: RegionSum
+  sig: 'class RegionSum(grid: list[list[int]]): sum_region(r1, c1, r2, c2) -> int'
+  domain: 热力图任意矩形区域求和，查询 O(1)
+  track: other
+- id: dash.fuzzy
+  ms: M7
+  fit: natural
+  module: nanoserve/dashboard/filter.py
+  symbol: fuzzy_match
+  sig: 'fuzzy_match(query: str, text: str) -> bool'
+  domain: 面板里的 fzf 式模糊过滤：query 的字符是否按顺序（可不连续）出现在 text 中
+  track: lc150
+- id: metrics.slowest_k
+  ms: M7
+  fit: natural
+  module: nanoserve/metrics/slowest.py
+  symbol: KthSlowest
+  sig: 'class KthSlowest(k: int, initial: list[int]): add(latency: int) -> int'
+  domain: 在线跟踪第 k 慢的请求延迟（「最慢 k 个」面板的门槛）
+  track: other
+- id: metrics.corrected
+  ms: M7
+  fit: natural
+  module: nanoserve/metrics/series.py
+  symbol: CorrectableSeries
+  sig: 'class CorrectableSeries: update(ts: int, value: int); current() -> int; maximum() -> int; minimum() -> int'
+  domain: 可被迟到数据修正的指标序列：最新时间戳的值、当前最大/最小值
+  track: other
+- id: metrics.busy_time
+  ms: M7
+  fit: natural
+  module: nanoserve/metrics/busy.py
+  symbol: BusyTimeCounter
+  sig: 'class BusyTimeCounter: add(left: int, right: int); count() -> int'
+  domain: 利用率统计：不断加入闭区间忙碌时段，查询被覆盖的总时刻数
+  track: other
+- id: autoscale.min_throughput
+  ms: M7
+  fit: natural
+  module: nanoserve/autoscale/sizing.py
+  symbol: min_throughput
+  sig: 'min_throughput(work: list[int], days: int) -> int'
+  domain: 按顺序处理的批任务，每个周期吞吐上限相同，days 个周期内完成所需的最小吞吐
+  track: other
+- id: autoscale.min_rate
+  ms: M7
+  fit: natural
+  module: nanoserve/autoscale/sizing.py
+  symbol: min_drain_rate
+  sig: 'min_drain_rate(queues: list[int], hours: int) -> int'
+  domain: 每个时间片只服务一个队列、最多服务 rate 个请求，hours 内清空所有队列的最小 rate
+  track: other
+- id: autoscale.min_time
+  ms: M7
+  fit: natural
+  module: nanoserve/autoscale/sizing.py
+  symbol: min_time_for
+  sig: 'min_time_for(per_request_time: list[int], total: int) -> int'
+  domain: 异构 worker 并行、各自每 t_i 完成一个请求，完成 total 个请求的最短时间
+  track: other

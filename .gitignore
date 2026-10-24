@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# 参考解（剧透）：不要提交到你自己的仓库
+reference/
+.coverage
