@@ -12,8 +12,8 @@ The decorator does two things:
      ``raise TODO(...)``) use the reference; everything you've written runs your code. This is how
      you jump ahead: do M3 first while M1/M2 are filled in by the reference.
 
-Reference solutions live on the ``solutions`` branch:
-``git fetch origin solutions && git restore --source=origin/solutions -- reference``.
+Reference solutions live in the ``solutions`` tag (a tag, not a branch, so a plain clone doesn't fetch them):
+``git fetch origin tag solutions && git restore --source=tags/solutions -- reference``.
 """
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def _load_reference(obj: Any, eid: str) -> Any:
     except ModuleNotFoundError as e:
         raise RuntimeError(
             f"NANOSERVE_REFERENCE is set but {mod_name} was not found. Get the reference solutions first: "
-            "git fetch origin solutions && git restore --source=origin/solutions -- reference"
+            "git fetch origin tag solutions && git restore --source=tags/solutions -- reference"
         ) from e
     try:
         return getattr(mod, obj.__name__)

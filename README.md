@@ -20,11 +20,11 @@ make progress        # 进度面板（无剧透）
 make m1              # M1 要实现哪些函数
 ```
 
-想先看看做完是什么样？参考解在 `solutions` 分支（**含剧透**）：
+想先看看做完是什么样？参考解在 `solutions` 标签里（**含剧透**；它是标签不是分支，所以 `git clone` 默认不会下载它）：
 
 ```bash
-git fetch origin solutions
-git restore --source=origin/solutions -- reference   # 只把 reference/ 放进工作区（已在 .gitignore 里，不会误提交）
+git fetch origin tag solutions
+git restore --source=tags/solutions -- reference   # 只把 reference/ 放进工作区（已在 .gitignore 里，不会误提交）
 make demos                                      # 参考模式下把每个里程碑的 demo 跑一遍
 ```
 
@@ -108,8 +108,21 @@ exercises.yaml                     练习清单：id、文件、签名、领域�
 - 练习文件、`exercises.yaml`、进度面板都不出现题号。
 - `tests/lc/` 的用例取自原题示例，熟悉 LeetCode 的人一眼能认出——想练"认模式"，先别读测试。
 - 少数练习为了适配真实调用场景放宽了原题的约束（比如允许任意字符、时间从 0 开始、数据规模更大），算法本身不变。
-- 参考解在 `solutions` 分支；`docs/` 里的讲义也包含参考实现。
+- 参考解在 `solutions` 标签里；`docs/` 里的讲义也包含参考实现。
 
 ## 做完之后
 
 在项目语境里写过一遍，理解会深很多；但面试要的是空白编辑器加计时。建议全部做完后用 `make reveal` 拿到题号，去 LeetCode 上从零快速重写一遍。
+
+## 维护者：更新参考解
+
+参考解只存在于 `solutions` 标签指向的那个提交里（`main` + `reference/`），不是一个长期分支，所以每次更新都不会在 GitHub 上出现「Compare & pull request」提示。更新时：
+
+```bash
+git fetch origin tag solutions
+git switch --detach main
+git restore --source=tags/solutions -- reference      # 取回参考解，按需修改
+git add -f reference && git commit -m "reference solutions"
+git tag -f solutions && git push -f origin tag solutions   # 把标签移到新提交
+git switch main
+```
