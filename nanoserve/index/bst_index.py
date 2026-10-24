@@ -15,6 +15,11 @@ the tree is rebuilt perfectly balanced from its in-order keys. Measuring is O(n)
 waiting queue of a few hundred requests, and it keeps the guarantee independent of *how* insert/delete
 reshape the tree (their specs allow any valid BST as the result).
 
+Range queries (``between``) walk down to the range's split node using the key order and then do a
+pruned in-order walk: O(depth + answer). Repair (``repair``) handles the opposite situation — the keys
+are right but the order is broken (a corrupted checkpoint) — so it cannot trust key comparisons and uses
+the general lowest common ancestor to find the smallest damaged subtree.
+
 Preconditions the owner must establish: every key passed to ``add`` is absent and every key passed to
 ``discard`` is present (the queue tracks membership in a dict); ``check()`` audits the result.
 
@@ -47,6 +52,31 @@ def _ceiling(root: TreeNode | None, key: int) -> TreeNode | None:
         else:
             root = root.right
     return best
+
+
+def _split(root: TreeNode | None, lo: int, hi: int) -> TreeNode | None:
+    """The highest node whose key lies in [lo, hi] — the "split node" of the range — or None.
+
+    One root-to-leaf walk using the BST order: above the range go left, below it go right. Every key in
+    [lo, hi] lives in the split node's subtree, so for two keys a <= b of the tree, ``_split(a, b)`` is
+    their lowest common ancestor. O(depth).
+    """
+    while root is not None and not lo <= root.val <= hi:
+        root = root.left if root.val > hi else root.right
+    return root
+
+
+def _inorder_nodes(root: TreeNode | None) -> list[TreeNode]:
+    """Nodes in in-order position — structural, no key comparisons (works on a broken BST too)."""
+    out, stack = [], []
+    while stack or root is not None:
+        while root is not None:
+            stack.append(root)
+            root = root.left
+        root = stack.pop()
+        out.append(root)
+        root = root.right
+    return out
 
 
 def _floor(root: TreeNode | None, key: int) -> TreeNode | None:
@@ -144,25 +174,54 @@ class BSTIndex:
         return lo
 
     def between(self, lo: int, hi: int) -> list[int]:
-        """Keys in [lo, hi], increasing.
+        """Keys in [lo, hi], increasing, in O(depth + answer).
 
-        The smallest and the largest key in range both exist as nodes; their fork point (lowest common
-        ancestor) is the split node of the range, and every key between them lives in its subtree. So
-        only that subtree is walked, not the whole index.
+        Start at the range's split node (``_split``, one walk down) and do an in-order walk that
+        prunes every subtree lying entirely outside [lo, hi]: go left only while the node's key is
+        > lo, right only while it is < hi. Nodes outside the range are visited only along the two
+        boundary paths, so the cost is the depth plus the number of keys returned.
         """
-        first, last = _ceiling(self.root, lo), _floor(self.root, hi)
-        if first is None or last is None or first.val > last.val:
-            return []
-        split = first if first is last else fork_point(self.root, first, last)
-        out = []
-        it = DeadlineIterator(split)
-        while it.has_next():
-            k = it.next()
-            if k > last.val:
-                break
-            if k >= first.val:
-                out.append(k)
+        out: list[int] = []
+        stack: list[TreeNode] = []
+        node = _split(self.root, lo, hi)
+        while stack or node is not None:
+            while node is not None:            # descend left, but never into keys < lo
+                stack.append(node)
+                node = node.left if node.val > lo else None
+            node = stack.pop()
+            if lo <= node.val <= hi:
+                out.append(node.val)
+            node = node.right if node.val < hi else None
         return out
+
+    def repair(self) -> int:
+        """Restore BST order in place when the keys are right but some sit in the wrong nodes —
+        e.g. a checkpoint writer swapped two keys. Returns how many nodes were rewritten (0 = was fine).
+
+        The in-order sequence of a BST is increasing. Take the first and the last place where it
+        decreases: the two nodes involved bound the damage, and their lowest common ancestor
+        (``fork_point`` — the general binary-tree version, because the tree is *not* a valid BST, so
+        a walk guided by the keys would go astray) is the smallest subtree that contains it. Sorting
+        that subtree's keys back into its in-order positions repairs it without touching the rest of
+        the tree. Repeat until the whole in-order sequence increases (one round for a single swap).
+        """
+        rewritten = 0
+        while True:
+            order = _inorder_nodes(self.root)
+            bad = [i for i in range(len(order) - 1) if order[i].val >= order[i + 1].val]
+            if not bad:
+                return rewritten
+            lo_node, hi_node = order[bad[0]], order[bad[-1] + 1]
+            sub = fork_point(self.root, lo_node, hi_node)
+            nodes = _inorder_nodes(sub)
+            vals = sorted(n.val for n in nodes)
+            if any(vals[i] == vals[i + 1] for i in range(len(vals) - 1)):
+                raise ValueError("duplicate keys: the index cannot be repaired by reordering")
+            for n, v in zip(nodes, vals):
+                if n.val != v:
+                    n.val = v
+                    rewritten += 1
+            self._measure()
 
     def min_gap(self) -> int | None:
         """Smallest difference between two keys (None with fewer than two keys)."""
@@ -183,3 +242,4 @@ class BSTIndex:
         if self._measure() > depth_limit(self.size):
             problems.append(f"depth {self.height} over limit {depth_limit(self.size):.1f}")
         return problems
+

@@ -20,6 +20,10 @@ class KVBackend(Protocol):
     def can_admit(self, req: Request, now: int) -> bool:
         """Is there room to admit ``req`` (its prompt + at least one new token) right now?"""
 
+    # Optional: ``can_ever_fit(req) -> bool`` — could ``req`` finish if it had the whole cache to
+    # itself? The server rejects requests that can't (see Server._admit_waiting); backends without
+    # it are assumed to fit everything.
+
     def on_admit(self, req: Request, now: int) -> None:
         """Allocate blocks for the request's prompt."""
 
@@ -58,6 +62,9 @@ class WaitingQueue(Protocol):
 
 class NullKV:
     def can_admit(self, req: Request, now: int) -> bool:
+        return True
+
+    def can_ever_fit(self, req: Request) -> bool:
         return True
 
     def on_admit(self, req: Request, now: int) -> None:

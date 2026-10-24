@@ -88,3 +88,23 @@ def test_request_that_can_never_fit_is_rejected(engine):
     assert [r.rid for r in rep.rejected] == ["big"]
     assert [r.rid for r in rep.finished] == ["ok"]
     assert rep.plugins["kv"]["problems"] == []
+
+
+def test_tiny_cache_rejects_what_can_never_fit_instead_of_livelocking(engine):
+    """Regression: with 9 blocks of 8 tokens, a request needing 10 blocks used to be admitted (its
+    prompt fits), then preempt everybody and itself forever. It must be rejected up front, and every
+    other request must finish with the same output as an unconstrained run."""
+    bs, nb = 8, 9
+    srv = Server(engine, ServerConfig(max_batch=4, kv_blocks=nb, block_size=bs))
+    srv.submit_many(make_trace(30, seed=0, rate=1.5))
+    rep = srv.run(max_ticks=5_000)
+    free = Server(engine, ServerConfig(max_batch=4))
+    free.submit_many(make_trace(30, seed=0, rate=1.5))
+    unlimited = free.run()
+    assert srv.idle(), "server did not drain (livelock?)"
+    need = {r.rid: -(-(r.prompt_tokens + r.max_tokens) // bs) for r in rep.requests}
+    rejected = {r.rid for r in rep.rejected}
+    assert rejected and rejected == {rid for rid, n in need.items() if n > nb}
+    base = {r.rid: r.output for r in unlimited.finished}
+    assert {r.rid: r.output for r in rep.finished} == {rid: base[rid] for rid in base if rid not in rejected}
+    assert srv.kv.check() == [] and srv.kv.audit_leaks() == []

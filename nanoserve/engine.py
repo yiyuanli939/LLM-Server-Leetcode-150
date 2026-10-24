@@ -166,16 +166,22 @@ class Engine:
 
     # ------------------------------------------------------------------ helpers
     def _pick(self, logits, out: list[int], cfg: GenerationConfig, rng: random.Random) -> int:
-        banned: set[int] = set()
+        tok = sample(logits, temperature=cfg.temperature, top_k=cfg.top_k, rng=rng)
         W = cfg.no_repeat_window
-        tok = 0
-        for _ in range(16):
-            tok = sample(logits, temperature=cfg.temperature, top_k=cfg.top_k, rng=rng, banned=banned)
-            if W and repeats_within(out[-W:] + [tok], W):
-                banned.add(tok)
-                continue
+        if not W:
             return tok
-        return tok  # give up enforcing the window rather than stall
+        window = out[-W:]
+        # Invariant: ``window`` never contains a repeat (we never commit one, see below), so the
+        # exercise's answer is about the new token only.
+        if not repeats_within(window + [tok], W):
+            return tok
+        banned = set(window)
+        if len(banned) >= len(logits):     # every token is in the window: nothing can satisfy it
+            return tok
+        # Draw again with the window's tokens removed (top-k is re-applied to what's left), so the
+        # result is the model's distribution conditioned on "not in the window" — one extra draw,
+        # never a retry loop, and the window stays repeat-free.
+        return sample(logits, temperature=cfg.temperature, top_k=cfg.top_k, rng=rng, banned=banned)
 
     @staticmethod
     def _earliest_stop(text: str, stops: Sequence[str]) -> int:

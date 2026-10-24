@@ -215,8 +215,17 @@ class Server:
         return True
 
     def _admit_waiting(self, now: int) -> None:
+        ever_fits = getattr(self.kv, "can_ever_fit", None)
         while len(self.running) < self.cfg.max_batch and len(self.queue):
             req = self.queue.peek()
+            if ever_fits is not None and not ever_fits(req):
+                # Would need more KV than the whole cache even running alone: admitting it would
+                # preempt everyone and then itself, forever. Reject now. This guarantee is what
+                # makes "preempt the most recently admitted" livelock-free: the oldest running
+                # request can always finish once the others are out of its way.
+                self.queue.pop()
+                self._reject(req, now)
+                continue
             ok = self._budget_ok(req, now) and self.kv.can_admit(req, now)
             if not ok:
                 if not self.running:  # can never fit, even on an empty server

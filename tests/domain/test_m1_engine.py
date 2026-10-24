@@ -47,11 +47,15 @@ def test_greedy_matches_top1(engine):
     assert greedy == top1
 
 
-def test_no_repeat_window(engine):
-    cfg = GenerationConfig(max_tokens=60, seed=2, no_repeat_window=3, temperature=1.2, top_k=20)
+@pytest.mark.parametrize("window,top_k", [(3, 20), (8, 3), (20, 3)])
+def test_no_repeat_window(engine, window, top_k):
+    """No token re-appears within ``window`` positions — even when the window is wider than top-k,
+    where plain rejection sampling would keep drawing the same few tokens."""
+    cfg = GenerationConfig(max_tokens=120, seed=2, no_repeat_window=window, temperature=1.0, top_k=top_k)
     ids = engine.generate("The queue", cfg).token_ids
+    assert len(ids) == 120
     for i in range(len(ids)):
-        assert ids[i] not in ids[max(0, i - 3):i]
+        assert ids[i] not in ids[max(0, i - window):i]
 
 
 def test_unknown_character_rejected(engine):

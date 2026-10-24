@@ -16,6 +16,7 @@ the live tree (``same_tree``)::
     q2 = restore_queue(ckpt, requests)               # same order, same tree shape, check() == []
 
 Exercises this file calls (M4): index.restore, prefix.codec, prefix.same_snapshot
+(and, with ``restore_queue(repair=True)``, prefix.fork_point through ``BSTIndex.repair``)
 (and, through ``DeadlineQueue.check``, the index audit: index.validate, index.iter, prefix.depth).
 """
 from __future__ import annotations
@@ -86,15 +87,19 @@ def checkpoint_queue(q: DeadlineQueue, fmt: str = "preorder") -> dict:
     return ckpt
 
 
-def restore_queue(ckpt: dict, requests: Iterable[Request]) -> DeadlineQueue:
+def restore_queue(ckpt: dict, requests: Iterable[Request], *, repair: bool = False) -> DeadlineQueue:
     """Rebuild a ``DeadlineQueue`` from ``checkpoint_queue`` output; ``requests`` supplies objects by rid.
 
     The index keeps its exact checkpointed shape (no re-insertion); the restored queue is audited.
+    ``repair=True``: if the index came back with the right keys in the wrong order (a corrupted
+    checkpoint), fix it in place (``BSTIndex.repair``) before the audit instead of refusing it.
     """
     by_rid = {r.rid: r for r in requests}
     owners = {int(k): by_rid[rid] for k, rid in ckpt["owners"].items()}
     seqs = {by_rid[rid]: seq for rid, seq in ckpt["seqs"].items() if rid in by_rid}
     q = DeadlineQueue.from_index(load_index(ckpt["index"]), owners, seqs, ckpt["next_seq"])
+    if repair:
+        q.repaired = q.index.repair()
     problems = q.check()
     if problems:
         raise ValueError("restored queue is inconsistent: " + "; ".join(problems))
